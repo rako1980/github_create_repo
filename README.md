@@ -1,4 +1,4 @@
-## Creates a git hub repo
+## Creates a github repo
 #### Requires a template repo to be created.
 
 ```
