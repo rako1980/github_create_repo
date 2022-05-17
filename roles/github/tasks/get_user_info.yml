@@ -1,0 +1,35 @@
+---
+- assert:
+    that:
+      - access_token is defined
+      - organization_name is defined
+      - github_username is defined
+
+- name: Get user details for {{ github_username }}
+  uri:
+    url: https://api.github.com/users/{{ github_username }}
+    method: GET
+    headers:
+      Authorization: token {{ access_token }}
+      Accept: application/vnd.github.v3+json
+    status_code:
+      - 200
+      - 404
+  register: github_user_info
+
+- name: Check Organization {{ organization_name  }} membership for {{ github_username }}
+  uri:
+    url: https://api.github.com/orgs/{{ organization_name }}/members/{{ github_username }}
+    method: GET
+    headers:
+      Authorization: token {{ access_token }}
+      Accept: application/vnd.github.v3+json
+    status_code:
+      - 204
+      - 404
+      - 302
+  register: check_org_membership
+
+- set_fact:
+    github_user_info_org_membership: "{% if check_org_membership.status == 204 %}true{% else %}false{% endif %}"
+    

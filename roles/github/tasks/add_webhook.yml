@@ -1,0 +1,25 @@
+---
+- assert:
+    that:
+      - access_token is defined
+      - organization_name is defined
+      - repo_name is defined
+      - repo_webhook_url is defined
+      - repo_webhook_events_list is defined
+
+- name: Add a webhook
+  uri:
+    url: https://api.github.com/repos/{{ organization_name }}/{{ repo_name }}/hooks
+    method: POST
+    headers:
+      Authorization: token {{ access_token }}
+      Accept: application/vnd.github.v3+json
+    body:
+      config:
+        url: "{{ repo_webhook_url }}"
+        content_type: json
+      events: "{{ repo_webhook_events_list }}"
+      active: true
+    body_format: json
+    status_code: 201
+

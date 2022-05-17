@@ -1,0 +1,15 @@
+### file: VERSION
+## This file maintains the major and minor version information for this module
+#
+## Modify the major and minor versions following the version semantic below:
+# 1. MAJOR version is incremented when you make any breaking change
+# 2. MINOR version is incremented when you add a new feature/functionality
+# 3. PATCH version is incremented when you make bug fixes
+#
+# Tag semantic: v(major).minor.patch
+# Note: patch version of tags are auto increment with every push
+
+major=1
+minor=0
+
+###

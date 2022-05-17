@@ -1,0 +1,46 @@
+---
+- name: set repo to internal
+  uri:
+    url: https://api.github.com/repos/{{ organization_name }}/{{ repo_name }}
+    method: PATCH
+    headers:
+      Authorization: token {{ access_token }}
+      Accept: application/vnd.github.v3+json
+    body:
+      visibility: "internal"
+    body_format: json
+  when: repo_visibility != 'internal'
+
+- name: Add default collaborators
+  include_role:
+    name: github
+    tasks_from: add_collaborators.yml
+  vars:
+    repo_collaborator: "{{ item.collaborator }}"
+    repo_collaborator_permission: "{{ item.permission }}"
+  loop:
+    - {collaborator: githubuser1, permission: pull}
+    - {collaborator: githubuser2, permission: push}
+
+- name: Add the initial VERSION file
+  uri:
+    url: https://api.github.com/repos/{{ organization_name }}/{{ github_repo_name }}/contents/VERSION
+    method: PUT
+    headers:
+      Authorization: token {{ access_token }}
+      Accept: application/vnd.github.v3+json
+    body:
+      message: "Added an initial VERSION file"
+      content: "{{ lookup('file', 'VERSION') | b64encode }}"
+    body_format: json
+    status_code: 201
+
+- name: Add a webhook to use ephemeral runner
+  include_role:
+    name: github
+    tasks_from: add_webhook.yml
+  vars:
+    repo_webhook_url: https://domain.com/testjook
+    repo_webhook_events_list:
+      - "workflow_job"
+

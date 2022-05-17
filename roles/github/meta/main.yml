@@ -1,0 +1,11 @@
+---
+galaxy_info:
+  author: ---
+  description: Github role. Ansible Roles
+  company: "..."
+  license: "GNU license"
+  min_ansible_version: 2.9
+  platforms:
+  - name: EL
+    versions:
+    - all

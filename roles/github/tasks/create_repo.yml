@@ -1,0 +1,44 @@
+---
+- assert:
+    that:
+      - access_token is defined
+      - organization_name is defined
+      - repo_name is defined
+      - repo_description is defined
+      - repo_visibility == 'internal' or repo_visibility == 'private'
+      - repo_template_name is defined
+      
+- name: Create repo from template
+  uri:
+    url: https://api.github.com/repos/{{ organization_name }}/{{ repo_template_name }}/generate
+    method: POST
+    headers:
+      Authorization: token {{ access_token }}
+      Accept: application/vnd.github.v3+json 
+    body:
+      owner: "{{ organization_name }}"
+      name: "{{ repo_name }}"
+      description: "{{ repo_description }}"
+      private: true
+    body_format: json
+    status_code: 201
+
+- name: Apply standard settings
+  uri:
+    url: https://api.github.com/repos/{{ organization_name }}/{{ repo_name }}
+    method: PATCH
+    headers:
+      Authorization: token {{ access_token }}
+      Accept: application/vnd.github.v3+json 
+    body:
+      allow_squash_merge: true
+      allow_merge_commit: false
+      allow_rebase_merge: false
+      delete_branch_on_merge: true
+      default_branch: master
+      visibility: "{{ repo_visibility }}"
+    body_format: json
+    status_code: 
+      - 204
+      - 200
+

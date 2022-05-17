@@ -1,0 +1,18 @@
+---
+- assert:
+    that:
+      - access_token is defined
+      - organization_name is defined
+      - repo_name is defined
+
+- name: Get repo details for {{ repo_name }}
+  uri:
+    url: https://api.github.com/repos/{{ organization_name }}/{{ repo_name }}
+    method: GET
+    headers:
+      Authorization: token {{ access_token }}
+      Accept: application/vnd.github.v3+json
+    status_code:
+      - 200
+      - 404
+  register: github_repo_info

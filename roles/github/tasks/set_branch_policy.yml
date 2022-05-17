@@ -1,0 +1,28 @@
+---
+- assert:
+    that:
+      - access_token is defined
+      - organization_name is defined
+      - repo_name is defined
+      - branch_name is defined
+
+- name: Create branch policy on branch {{ branch_name }}
+  uri:
+    url:  https://api.github.com/repos/{{ organization_name }}/{{ repo_name }}/branches/{{ branch_name }}/protection 
+    method: PUT
+    headers:
+      Authorization: token {{ access_token }}
+      Accept: application/vnd.github.v3+json 
+    body:
+      required_status_checks: null
+      enforce_admins: true
+      required_pull_request_reviews:
+        dismiss_stale_reviews: true
+        require_code_owner_reviews: true
+        required_approving_review_count: 1
+      restrictions: null
+      required_conversation_resolution: true
+      allow_force_pushed: false
+      allow_deletions: false
+    body_format: json
+

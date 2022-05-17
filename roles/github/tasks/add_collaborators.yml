@@ -1,0 +1,21 @@
+---
+- assert:
+    that:
+      - access_token is defined
+      - organization_name is defined
+      - repo_name is defined
+      - repo_collaborator is defined
+      - repo_collaborator_permission is defined
+
+- name: Add user or team collaborators to the repo
+  uri:
+    url:  https://api.github.com/repos/{{ organization_name }}/{{ repo_name }}/collaborators/{{ repo_collaborator }}
+    method: PUT
+    headers:
+      Authorization: token {{ access_token }}
+      Accept: application/vnd.github.v3+json 
+    body:
+      permission: "{{ repo_collaborator_permission }}"
+    body_format: json
+    status_code: 204
+

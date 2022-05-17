@@ -1,0 +1,76 @@
+---
+- hosts: localhost
+  gather_facts: false
+        
+  vars:
+    organization_name: "{{ github_org_name }}"
+    access_token: "{{ github_access_token }}"
+    repo_name: "{{ github_repo_name }}"
+    repo_description: "{{ github_repo_description }}"
+    repo_visibility: "{{ github_repo_visibility | default ('private', true) }}"
+    repo_template_name: "{{ github_repo_template_name | default('template_repo', true) }}"
+    repo_default_branch: master
+
+  pre_tasks:
+    - assert:
+        that:
+          - github_access_token is defined
+          - github_repo_name is defined
+          - github_repo_description is defined
+
+  tasks:
+    - name: validate if repo exists
+      include_role:
+        name: github
+        tasks_from: get_repo_info.yml
+
+    - fail:
+        msg: GitHub repo named {{ repo_name }} already found in org {{ organization_name }}
+      when: 
+        - github_repo_info.json.id is defined 
+
+    - name: validate github if repo owner is member of {{ organization_name }}
+      include_role:
+        name: github
+        tasks_from: get_user_info.yml
+      vars:
+        github_username: "{{ github_repo_owner }}" 
+      when: github_repo_owner is defined and github_repo_owner | length > 0
+    
+    #- debug: var=github_user_info
+    #- debug: var=check_org_membership
+    #- debug: var=github_user_info_org_membership
+    
+    - debug:
+        msg: GitHub user {{ github_repo_owner }} is not found in org {{ organization_name }}. I will attempt to create repo without owner assigned.
+      when: 
+        - github_repo_owner is defined and github_repo_owner | length > 0
+        - not github_user_info_org_membership | bool
+    
+    - name: Create repo
+      include_role:
+        name: github
+        tasks_from: create_repo.yml
+    
+    - name: Assign an admin access to the owner of the repo
+      include_role:
+        name: github
+        tasks_from: add_collaborators.yml
+      vars:
+        repo_collaborator: "{{ github_repo_owner }}"
+        repo_collaborator_permission: "admin"
+      when: 
+        - github_repo_owner is defined and github_repo_owner | length > 0
+        - github_user_info_org_membership | bool
+
+    
+    # Add some extras
+    - name: Include extras on the repos
+      include_tasks: extras.yml
+
+    - name: Set default branch policy
+      include_role:
+        name: github
+        tasks_from: set_branch_policy.yml
+      vars:
+        branch_name: "{{ repo_default_branch }}"
